@@ -1,0 +1,27 @@
+{
+  "name": "nodejs_training",
+  "version": "1.0.0",
+  "description": "oddsmatcher prototype",
+  "main": "scrape.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matlinski/nodejs_training.git"
+  },
+  "keywords": [],
+  "author": "Mateusz Matlinski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/matlinski/nodejs_training/issues"
+  },
+  "homepage": "https://github.com/matlinski/nodejs_training#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "express": "^4.17.1",
+    "mysql": "^2.17.1",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {}
+}
