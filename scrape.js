@@ -32,9 +32,9 @@ app.listen('3000', () => {
     request('http://www.elcomparador.com/futbol/', (error, response, html) => {
         if(!error && response.statusCode == 200){
             const $ = cheerio.load(html);
+            app.get('/add_events', (req, res) => {
+                let sql = 'INSERT INTO events SET ?';
              $('.flecha_izquierda').each( (i, el) =>{
-                app.get('/add_events', (req, res) => {
-                    let sql = 'INSERT INTO events SET ?';
                     request('http://www.elcomparador.com/'+$(el).attr('href'), (e, r, h) => {
                     if(!e && r.statusCode == 200){
                         const $ = cheerio.load(h);
@@ -73,19 +73,20 @@ app.listen('3000', () => {
                         console.log('#######################################################################################################################################################################################################################################################################################################################################')
               
                   })
-                    let query = db.query(sql, placeholder, (err, result) => {
-                        if(err){
-                            throw err;
-                        }
-                        console.log(result)
-                        res.send('evento added');
-                    })
+
+                })
+                let query = db.query(sql, placeholder, (err, result) => {
+                    if(err){
+                        throw err;
+                    }
+                    console.log(result)
+                    res.send('evento added');
                 })
             })       
         }
     })
   // getDetails('http://www.elcomparador.com/futbol/eibar-sevilla')
 
-     
+
 
 
