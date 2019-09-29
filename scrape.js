@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const fs = require('fs'); 
 const mysql = require('mysql');
 let temp;
+const sports = [{id: 1, name: 'fútbol'}, {id: 2, name: 'tenis'}, {id: 23, name: 'baloncesto'}]
 
 const db = mysql.createConnection({
     host: "localhost",
@@ -25,8 +26,8 @@ const app = express();
 app.listen('3000', () => {
     console.log('Server started on port 3000');
 });
-function getPage(url){
-    axios.get(url)
+function getPage(url, sport){
+    axios.get(url, sport)
     .then((response) => {
         if(response.status === 200) {
         const html = response.data;
@@ -41,7 +42,7 @@ function getPage(url){
                     const selections = [];
                     const h = response.data;
                     const $ = cheerio.load(h);
-                    placeholder.category = 'futbol'; //CATEGORY 1ST
+                    placeholder.category = sport; //CATEGORY 1ST
                     placeholder.name = $('.equipo_left').text()+' vs '+$('.equipo_right').text(); //NAME 2ND
                     placeholder.time = $('.hora').text().trim().split(' - ')[0].split('/').reverse().join('-')+' '+$('.hora').text().trim().split(' - ')[1]; //TIME 3RD
                     $('#celda_interna_categoriaapuestas').each((i, el)=>{
@@ -124,10 +125,15 @@ function getPage(url){
   
     return d;
   }
+
 let day;
-for(let inc = 1; inc < 4; inc++){
-    day = addDays(new Date(), inc).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
-    for(let offset = 30; offset <= 150; offset += 30){
-        getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte=1&fecha='+day+'&offset='+offset);
+sports.forEach((sport)=>{
+    day = addDays(new Date(), 1).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
+    getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day, sport.name);
+    for(let inc = 1; inc < 4; inc++){
+        day = addDays(new Date(), inc).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
+        for(let offset = 30; offset <= 150; offset += 30){
+            getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day+'&offset='+offset, sport.name);
+        }
     }
-}
+})
