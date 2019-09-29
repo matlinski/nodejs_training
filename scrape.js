@@ -62,7 +62,16 @@ function getPage(url){
                                     if(!isNaN($(b).text())){
                                         placeholder.bookies = bookies[a]; //BOOKIES 6TH
                                         placeholder.back_odds = $(b).text(); //BACK_ODDS 7TH
-                                        odds_list.push([placeholder.category, placeholder.name, placeholder.time, placeholder.market, placeholder.selection, placeholder.bookies, placeholder.back_odds]);
+                                        let check = true;
+                                        for(let k in placeholder) {
+                                            if(typeof k == 'undefined' || k.length === 0 || k === null || !k){
+                                                check = false;
+                                                console.log(placeholder);
+                                            }
+                                        }
+                                        if(check === true && placeholder.length !== 0){
+                                            odds_list.push([placeholder.category, placeholder.name, placeholder.time, placeholder.market, placeholder.selection, placeholder.bookies, placeholder.back_odds])
+                                        };
                                     }
                                 })
                             });
@@ -72,16 +81,16 @@ function getPage(url){
                 }
             })
             .then((input)=>{
-                console.log(input);
-                app.get('/add_odds', (req, res) => {
+                if(input.length != 0){
                     let sql = 'INSERT IGNORE INTO `odds` (`category`, `name`, `time`, `market`, `selection`, `bookies`, `back_odds`) VALUES ?';
                     let query = db.query(sql, [input.map(item => [item[0], item[1], item[2], item[3], item[4], item[5], item[6]])], (err, result) => {
                         if(err){
+                            console.log(result);
                             throw err;
                         }
-                        res.send('odds added');
                     })
-                })
+                }
+                 
             })
             .catch(function(e) {
                 console.log(e); // "Uh-oh!"
@@ -113,7 +122,7 @@ function getPage(url){
     return d;
   }
 let day;
-for(let inc = 0; inc < 1; inc++){
+for(let inc = 1; inc < 2; inc++){
     day = addDays(new Date(), inc).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
     for(let offset = 30; offset <= 40; offset += 30){
         getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte=1&fecha='+day+'&offset='+offset);
