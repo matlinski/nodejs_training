@@ -3,7 +3,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs'); 
 const mysql = require('mysql');
-let pageCount = 0;
+let temp;
 
 const db = mysql.createConnection({
     host: "localhost",
@@ -66,7 +66,10 @@ function getPage(url){
                                         for(let k in placeholder) {
                                             if(typeof k == 'undefined' || k.length === 0 || k === null || !k){
                                                 check = false;
-                                                console.log(placeholder);
+                                            }   else    {
+                                                if(odds_list.length >= 2500){
+                                                    temp = odds_list.shift();
+                                                }
                                             }
                                         }
                                         if(check === true && placeholder.length !== 0){
@@ -85,11 +88,11 @@ function getPage(url){
                     let sql = 'INSERT IGNORE INTO `odds` (`category`, `name`, `time`, `market`, `selection`, `bookies`, `back_odds`) VALUES ?';
                     let query = db.query(sql, [input.map(item => [item[0], item[1], item[2], item[3], item[4], item[5], item[6]])], (err, result) => {
                         if(err){
-                            console.log(result);
                             throw err;
                         }
-                    })
-                }
+                    console.log(result);
+                })
+            }
                  
             })
             .catch(function(e) {
@@ -122,9 +125,9 @@ function getPage(url){
     return d;
   }
 let day;
-for(let inc = 1; inc < 2; inc++){
+for(let inc = 1; inc < 4; inc++){
     day = addDays(new Date(), inc).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
-    for(let offset = 30; offset <= 40; offset += 30){
+    for(let offset = 30; offset <= 150; offset += 30){
         getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte=1&fecha='+day+'&offset='+offset);
     }
 }
