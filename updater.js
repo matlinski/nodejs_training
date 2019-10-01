@@ -4,7 +4,8 @@ const cheerio = require('cheerio');
 const fs = require('fs'); 
 const mysql = require('mysql');
 let temp;
-const sports = [{id: 1, name: 'fútbol'}, {id: 2, name: 'tenis'}, {id: 23, name: 'baloncesto'}]
+let back_odds;
+const sports = [{id: 1, name: 'fútbol'}, {id: 2, name: 'tenis'}, {id: 23, name: 'baloncesto'}];
 
 const db = mysql.createConnection({
     host: "localhost",
@@ -26,7 +27,8 @@ const app = express();
 app.listen('3000', () => {
     console.log('Server started on port 3000');
 });
-function getPage(url, sport){
+
+ function getPage(url, sport){
     axios.get(url, sport)
     .then((response) => {
         if(response.status === 200) {
@@ -62,7 +64,7 @@ function getPage(url, sport){
                                 $(l).find('#celda_cuotas:not(.combi_cesta)').each((a, b)=>{
                                     if(!isNaN($(b).text())){
                                         placeholder.bookies = bookies[a]; //BOOKIES 6TH
-                                        placeholder.back_odds = $(b).text(); //BACK_ODDS 7TH
+                                        back_odds = $(b).text(); //BACK_ODDS 7TH
                                         let check = true;
                                         for(let k in placeholder) {
                                             if(typeof k == 'undefined' || k.length === 0 || k === null || !k){
@@ -74,7 +76,7 @@ function getPage(url, sport){
                                             }
                                         }
                                         if(check === true && placeholder.length !== 0){
-                                            odds_list.push([placeholder.category, placeholder.name, placeholder.time, placeholder.market, placeholder.selection, placeholder.bookies, placeholder.back_odds])
+                                            odds_list.push([back_odds, placeholder])
                                         };
                                     }
                                 })
@@ -86,8 +88,8 @@ function getPage(url, sport){
             })
             .then((input)=>{
                 if(input.length != 0){
-                    let sql = 'INSERT IGNORE INTO `odds` (`category`, `name`, `time`, `market`, `selection`, `bookies`, `back_odds`) VALUES ?';
-                    let query = db.query(sql, [input.map(item => [item[0], item[1], item[2], item[3], item[4], item[5], item[6]])], (err, result) => {
+                    let sql = 'UPDATE `odds` SET `back_odds` = ? WHERE ?';
+                    let query = db.query(sql,input[0], [input[1].map(item => [item.category, item.name, item.time, item.time, item.market, item.selection, item.bookies])], (err, result) => {
                         if(err){
                             throw err;
                         }
@@ -129,11 +131,11 @@ function getPage(url, sport){
 let day;
 sports.forEach((sport)=>{
     day = addDays(new Date(), 0).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
-    getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day, sport.name);
-    for(let inc = 0; inc < 3; inc++){
+    getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day);
+    for(let inc = 0; inc < 1; inc++){
         day = addDays(new Date(), inc).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
-        for(let offset = 30; offset <= 150; offset += 30){
-            getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day+'&offset='+offset, sport.name);
+        for(let offset = 30; offset <= 40; offset += 30){
+            getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day+'&offset='+offset);
         }
     }
 })
