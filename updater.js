@@ -69,34 +69,26 @@ app.listen('3000', () => {
                                         for(let k in placeholder) {
                                             if(typeof k == 'undefined' || k.length === 0 || k === null || !k){
                                                 check = false;
-                                            }   else    {
-                                                if(odds_list.length >= 2500){
-                                                    temp = odds_list.shift();
-                                                }
                                             }
                                         }
-                                        if(check === true && placeholder.length !== 0){
-                                            odds_list.push([back_odds, placeholder])
-                                        };
+                                        if(check !== true ){
+                                            placeholder = null;
+                                        }
                                     }
                                 })
                             });
                        });
-                    // console.log(placeholder);
-                    return odds_list;   
+                       return placeholder; 
                 }
             })
             .then((input)=>{
-                if(input.length != 0){
-                    let sql = 'UPDATE `odds` SET `back_odds` = ? WHERE ?';
-                    let query = db.query(sql,input[0], [input[1].map(item => [item.category, item.name, item.time, item.time, item.market, item.selection, item.bookies])], (err, result) => {
+                    let sql = 'UPDATE `odds` SET `back_odds` = 999 WHERE ? AND ? AND ? AND ? AND ? AND ?';
+                    let query = db.query(sql,  [{category: input.category}, {name: input.name}, {time: input.time}, {market: input.market}, {selection: input.selection}, {bookies: input.bookies}], (err, result) => {
                         if(err){
                             throw err;
                         }
                     console.log(result);
-                })
-            }
-                 
+                })  
             })
             .catch(function(e) {
                 console.log(e); // "Uh-oh!"
@@ -131,11 +123,11 @@ app.listen('3000', () => {
 let day;
 sports.forEach((sport)=>{
     day = addDays(new Date(), 0).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
-    getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day);
+    getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day, sport.name);
     for(let inc = 0; inc < 1; inc++){
         day = addDays(new Date(), inc).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
         for(let offset = 30; offset <= 40; offset += 30){
-            getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day+'&offset='+offset);
+            getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day+'&offset='+offset, sport.name);
         }
     }
 })

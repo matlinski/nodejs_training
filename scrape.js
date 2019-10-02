@@ -130,9 +130,9 @@ let day;
 sports.forEach((sport)=>{
     day = addDays(new Date(), 0).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
     getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day, sport.name);
-    for(let inc = 0; inc < 3; inc++){
+    for(let inc = 0; inc < 1; inc++){
         day = addDays(new Date(), inc).toISOString().replace(/T/, ' ').replace(/\..+/, '').split(' ')[0];
-        for(let offset = 30; offset <= 150; offset += 30){
+        for(let offset = 30; offset <= 40; offset += 30){
             getPage('http://www.elcomparador.com/html/contenido/mas_partidos.php?deporte='+sport.id+'&fecha='+day+'&offset='+offset, sport.name);
         }
     }
