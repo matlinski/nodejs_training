@@ -6,15 +6,16 @@ const mysql = require('mysql');
 let temp;
 let back_odds;
 const sports = [{id: 1, name: 'fútbol'}, {id: 2, name: 'tenis'}, {id: 23, name: 'baloncesto'}];
+let last_length;
 
 const db = mysql.createConnection({
     host: "localhost",
     user: "mat",
     password: "tam",
-    database: 'oddsmatcher'
+    database: 'oddsmatcher',
+    multipleStatements: true
 });
-    let placeholder;
-    const odds_list = [];
+    let placeholder = [];
 db.connect((err)=> {
     if(err){
         throw err;
@@ -38,15 +39,11 @@ app.listen('3000', () => {
             axios.get('http://www.elcomparador.com/'+$(el).attr('href'))
             .then((response) => {
                 if(response.status === 200) {
-                    placeholder = {};
                     const markets = [];
                     const bookies = [];
                     const selections = [];
                     const h = response.data;
                     const $ = cheerio.load(h);
-                    placeholder.category = sport; //CATEGORY 1ST
-                    placeholder.name = $('.equipo_left').text()+' vs '+$('.equipo_right').text(); //NAME 2ND
-                    placeholder.time = $('.hora').text().trim().split(' - ')[0].split('/').reverse().join('-')+' '+$('.hora').text().trim().split(' - ')[1]; //TIME 3RD
                     $('#celda_interna_categoriaapuestas').each((i, el)=>{
                         markets.push($(el).text());
                     });
@@ -59,21 +56,28 @@ app.listen('3000', () => {
                                 selections[markets[i]].push( $(l).text());
                             });
                             $(el).find('.ocultar #fila_cuotas').each((e, l)=>{
-                                placeholder.market = markets[i]; //MARKET 4TH
-                                placeholder.selection = selections[markets[i]][e]; //SELECTION 5TH
                                 $(l).find('#celda_cuotas:not(.combi_cesta)').each((a, b)=>{
                                     if(!isNaN($(b).text())){
-                                        placeholder.bookies = bookies[a]; //BOOKIES 6TH
-                                        back_odds = $(b).text(); //BACK_ODDS 7TH
-                                        let check = true;
-                                        for(let k in placeholder) {
-                                            if(typeof k == 'undefined' || k.length === 0 || k === null || !k){
-                                                check = false;
+                                        placeholder.push([
+                                                            {category: sport},
+                                                            {name: $('.equipo_left').text()+' vs '+$('.equipo_right').text()},
+                                                            {time: $('.hora').text().trim().split(' - ')[0].split('/').reverse().join('-')+' '+$('.hora').text().trim().split(' - ')[1]},
+                                                            {market: markets[i]},
+                                                            {selection: selections[markets[i]][e]},
+                                                            {bookies: bookies[a]}
+                                                        ]); 
+                                        back_odds = $(b).text();
+                                        placeholder.forEach((p)=>{
+                                            for(let k in p) {
+                                                let check = true;
+                                                if(typeof k == 'undefined' || k.length === 0 || k === null || !k){
+                                                    check = false;
+                                                }
+                                                if(check !== true ){
+                                                    p = null;
+                                                }
                                             }
-                                        }
-                                        if(check !== true ){
-                                            placeholder = null;
-                                        }
+                                        })
                                     }
                                 })
                             });
@@ -82,13 +86,18 @@ app.listen('3000', () => {
                 }
             })
             .then((input)=>{
+                console.log(input.length);
+                if(input.length > 0){
                     let sql = 'UPDATE `odds` SET `back_odds` = 999 WHERE ? AND ? AND ? AND ? AND ? AND ?';
-                    let query = db.query(sql,  [{category: input.category}, {name: input.name}, {time: input.time}, {market: input.market}, {selection: input.selection}, {bookies: input.bookies}], (err, result) => {
-                        if(err){
-                            throw err;
+                        for(let i = 0; i < input.length; i++){
+                            db.query(sql,  input.pop(), (err, result) => {
+                                if(err){
+                                    throw err;
+                                }
+                                console.log(result); //query.sql
+                            })
                         }
-                    console.log(result);
-                })  
+                }
             })
             .catch(function(e) {
                 console.log(e); // "Uh-oh!"
